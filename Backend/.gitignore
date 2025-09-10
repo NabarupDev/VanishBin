@@ -87,3 +87,7 @@ uploads/*
 
 
 package-lock.json
+
+.env
+.env.production
+.env.staging
