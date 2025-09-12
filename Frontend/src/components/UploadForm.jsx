@@ -6,8 +6,10 @@ const UploadForm = ({ onUploadSuccess }) => {
   const [title, setTitle] = useState('');
   const [text, setText] = useState('');
   const [file, setFile] = useState(null);
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [dragActive, setDragActive] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -34,6 +36,10 @@ const UploadForm = ({ onUploadSuccess }) => {
       const formData = new FormData();
       
       formData.append('title', title.trim());
+      
+      if (password.trim()) {
+        formData.append('password', password.trim());
+      }
       
       if (file) {
         formData.append('file', file);
@@ -66,6 +72,7 @@ const UploadForm = ({ onUploadSuccess }) => {
       setTitle('');
       setText('');
       setFile(null);
+      setPassword('');
       if (e.target.file) e.target.file.value = '';
       
     } catch (err) {
@@ -91,12 +98,62 @@ const UploadForm = ({ onUploadSuccess }) => {
     }
   };
 
+  const truncateFileName = (fileName, maxLength = 30) => {
+    if (!fileName || fileName.length <= maxLength) return fileName;
+    
+    const extension = fileName.substring(fileName.lastIndexOf('.'));
+    const nameWithoutExt = fileName.substring(0, fileName.lastIndexOf('.'));
+    const truncatedName = nameWithoutExt.substring(0, maxLength - extension.length - 3);
+    
+    return `${truncatedName}...${extension}`;
+  };
+
   const handleTextChange = (e) => {
     setText(e.target.value);
     if (e.target.value.trim()) {
       setFile(null); // Clear file when text is entered
       const fileInput = document.querySelector('input[type="file"]');
       if (fileInput) fileInput.value = '';
+    }
+  };
+
+  // Drag and drop handlers
+  const handleDrag = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDragIn = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+      setDragActive(true);
+    }
+  };
+
+  const handleDragOut = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    
+    if (loading || text.trim()) return;
+    
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const droppedFile = e.dataTransfer.files[0];
+      try {
+        validateFile(droppedFile);
+        setFile(droppedFile);
+        setText(''); // Clear text when file is dropped
+        setError(''); // Clear any previous errors
+      } catch (err) {
+        setError(err.message);
+      }
     }
   };
 
@@ -134,6 +191,25 @@ const UploadForm = ({ onUploadSuccess }) => {
           </p>
         </div>
 
+        {/* Password Input */}
+        <div>
+          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+            Password Protection <span className="text-gray-400">(Optional)</span>
+          </label>
+          <input
+            id="password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Enter password to protect this share..."
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            disabled={loading}
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            {password ? 'This share will be password protected' : 'Leave empty for public access'}
+          </p>
+        </div>
+
         {/* Text Input */}
         <div>
           <label htmlFor="text" className="block text-sm font-medium text-gray-700 mb-2">
@@ -162,7 +238,19 @@ const UploadForm = ({ onUploadSuccess }) => {
           <label htmlFor="file" className="block text-sm font-medium text-gray-700 mb-2">
             Upload File
           </label>
-          <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md hover:border-gray-400 transition-colors cursor-pointer">
+          <div 
+            className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed rounded-md transition-colors cursor-pointer ${
+              dragActive 
+                ? 'border-blue-500 bg-blue-50' 
+                : file 
+                  ? 'border-green-300 bg-green-50' 
+                  : 'border-gray-300 hover:border-gray-400'
+            }`}
+            onDragEnter={handleDragIn}
+            onDragLeave={handleDragOut}
+            onDragOver={handleDrag}
+            onDrop={handleDrop}
+          >
             <div className="space-y-1 text-center">
               <svg
                 className="mx-auto h-12 w-12 text-gray-400"
@@ -196,12 +284,20 @@ const UploadForm = ({ onUploadSuccess }) => {
                 <p className="pl-1">or drag and drop</p>
               </div>
               <p className="text-xs text-gray-500">
-                Images, PDFs, Documents up to 50MB
+                {dragActive 
+                  ? "Drop your file here..." 
+                  : "Images, PDFs, Documents up to 50MB"
+                }
               </p>
               {file && (
-                <p className="text-sm text-green-600 font-medium">
-                  Selected: {file.name}
-                </p>
+                <div className="mt-2 p-2 bg-green-50 rounded-md border border-green-200">
+                  <p className="text-sm text-green-700 font-medium break-all" title={file.name}>
+                    📎 {truncateFileName(file.name)}
+                  </p>
+                  <p className="text-xs text-green-600 mt-1">
+                    {(file.size / (1024 * 1024)).toFixed(2)} MB
+                  </p>
+                </div>
               )}
             </div>
           </div>

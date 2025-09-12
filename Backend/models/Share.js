@@ -7,6 +7,11 @@ const shareSchema = new mongoose.Schema({
     required: true,
     maxlength: 100
   },
+  password: {
+    type: String,
+    default: null,
+    select: false // Don't include password in query results by default
+  },
   content: {
     type: String,
     default: null

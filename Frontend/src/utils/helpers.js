@@ -65,3 +65,34 @@ export const generateShareUrl = (id) => {
   const baseUrl = window.location.origin;
   return `${baseUrl}/view/${id}`;
 };
+
+// Helper function to smoothly scroll to top
+export const scrollToTop = (duration = 500) => {
+  const start = window.pageYOffset;
+  const startTime = 'now' in window.performance ? performance.now() : new Date().getTime();
+
+  const documentHeight = Math.max(document.body.scrollHeight, document.body.offsetHeight, document.documentElement.clientHeight, document.documentElement.scrollHeight, document.documentElement.offsetHeight);
+  const windowHeight = window.innerHeight || document.documentElement.clientHeight || document.getElementsByTagName('body')[0].clientHeight;
+  const destinationOffset = 0;
+  const destinationOffsetToScroll = Math.round(documentHeight - destinationOffset < windowHeight ? documentHeight - windowHeight : destinationOffset);
+
+  if ('requestAnimationFrame' in window === false) {
+    window.scroll(0, destinationOffsetToScroll);
+    return;
+  }
+
+  function scroll() {
+    const now = 'now' in window.performance ? performance.now() : new Date().getTime();
+    const time = Math.min(1, ((now - startTime) / duration));
+    const timeFunction = time < 0.5 ? 4 * time * time * time : (time - 1) * (2 * time - 2) * (2 * time - 2) + 1;
+    window.scroll(0, Math.ceil((timeFunction * (destinationOffsetToScroll - start)) + start));
+
+    if (window.pageYOffset === destinationOffsetToScroll) {
+      return;
+    }
+
+    requestAnimationFrame(scroll);
+  }
+
+  scroll();
+};

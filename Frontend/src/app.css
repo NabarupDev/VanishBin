@@ -1,1 +1,12 @@
 @import "tailwindcss";
+
+/* Global smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Improved focus management for better UX */
+*:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}

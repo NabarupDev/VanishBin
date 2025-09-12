@@ -16,7 +16,14 @@ const Footer = () => {
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div className="flex items-center space-x-4">
               <p className="text-sm text-gray-600">
-                Developed with ❤️ by <span className="font-medium text-gray-800">Nabarup</span>
+                Developed with ❤️ by <a 
+                  href="https://nabaruproy.me" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="font-medium text-gray-800 hover:text-blue-600 transition-colors cursor-pointer"
+                >
+                  Nabarup
+                </a>
               </p>
               <div className="flex space-x-3">
                 <a 

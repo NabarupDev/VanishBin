@@ -13,6 +13,9 @@ const shareRoutes = require('./routes/shareRoutes');
 // Import cleanup service
 const { scheduleCleanup } = require('./services/cleanupService');
 
+// Import rate limiting middleware
+const { globalRateLimit } = require('./middleware/rateLimiting');
+
 // Initialize Express app
 const app = express();
 
@@ -45,6 +48,12 @@ app.use(cors({
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
+// Trust proxy for accurate IP detection behind reverse proxies
+app.set('trust proxy', 1);
+
+// Apply global rate limiting to all endpoints
+app.use(globalRateLimit);
+
 // Serve static files from uploads directory (for legacy files)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
@@ -52,14 +61,15 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api', shareRoutes);
 
 // Health check endpoint
-app.get('/health', (req, res) => {
+app.get('/health', require('./middleware/rateLimiting').healthCheckRateLimit, (req, res) => {
   res.json({ 
     status: 'OK', 
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     memory: process.memoryUsage(),
     storage: 'Supabase',
-    cleanup: 'Enabled'
+    cleanup: 'Enabled',
+    rateLimiting: 'Enabled'
   });
 });
 
@@ -74,6 +84,7 @@ app.use((req, res) => {
       'GET /api/all - Get all shares',
       'GET /api/cleanup/stats - Get cleanup statistics',
       'POST /api/cleanup - Manually trigger cleanup',
+      'GET /api/rate-limit/stats - Get rate limiting statistics',
       'GET /health - Health check'
     ]
   });

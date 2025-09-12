@@ -24,7 +24,7 @@ const Header = () => {
               href="/"
               className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer"
             >
-              Share
+              Home
             </a>
             <a
               href="/all"
@@ -32,12 +32,18 @@ const Header = () => {
             >
               Browse All
             </a>
-            <a
-              href="#"
+            {/* <a
+              href="/error-demo"
               className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer"
             >
-              About
+              Error Demo
             </a>
+            <a
+              href="/lazy-demo"
+              className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer"
+            >
+              Lazy Demo
+            </a> */}
           </nav>
 
           {/* Mobile menu button */}
@@ -67,7 +73,7 @@ const Header = () => {
                 className="block text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-base font-medium transition-colors cursor-pointer"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Share
+                Home
               </a>
               <a
                 href="/all"
@@ -76,13 +82,20 @@ const Header = () => {
               >
                 Browse All
               </a>
-              <a
-                href="#"
+              {/* <a
+                href="/error-demo"
                 className="block text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-base font-medium transition-colors cursor-pointer"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                About
+                Error Demo
               </a>
+              <a
+                href="/lazy-demo"
+                className="block text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-base font-medium transition-colors cursor-pointer"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Lazy Demo
+              </a> */}
             </div>
           </div>
         )}

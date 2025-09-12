@@ -4,18 +4,20 @@ const { uploadFile, generateUniqueFileName, getPublicUrl } = require('../config/
 // Configure multer to use memory storage (store files in memory instead of disk)
 const storage = multer.memoryStorage();
 
-// File filter to limit file types (optional security measure)
+// Define allowed MIME types for file uploads
+const allowedMimeTypes = [
+  'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+  'application/pdf', 'text/plain', 'application/zip',
+  // Add more as needed
+];
+
+// File filter to limit file types (security measure)
 const fileFilter = (req, file, cb) => {
-  // Allow all file types for now, but you can add restrictions here
-  // Example restrictions:
-  // const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf', 'text/plain'];
-  // if (allowedTypes.includes(file.mimetype)) {
-  //   cb(null, true);
-  // } else {
-  //   cb(new Error('File type not allowed'), false);
-  // }
-  
-  cb(null, true);
+  if (allowedMimeTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error('File type not allowed'), false);
+  }
 };
 
 const upload = multer({ 

@@ -1,12 +1,13 @@
 const Share = require('../models/Share');
 const path = require('path');
 const fs = require('fs');
+const bcrypt = require('bcrypt');
 const { deleteFile } = require('../config/supabase');
 
 // POST /upload - Handle text or file upload
 const uploadContent = async (req, res) => {
   try {
-    const { text, title } = req.body;
+    const { text, title, password } = req.body;
     const file = req.file;
     const supabaseFile = req.supabaseFile;
 
@@ -28,6 +29,12 @@ const uploadContent = async (req, res) => {
     const shareData = {
       title: title.trim()
     };
+
+    // Hash password if provided
+    if (password && password.trim()) {
+      const saltRounds = 12;
+      shareData.password = await bcrypt.hash(password.trim(), saltRounds);
+    }
 
     if (text) {
       shareData.content = text;
@@ -83,9 +90,10 @@ const uploadContent = async (req, res) => {
 const getContent = async (req, res) => {
   try {
     const { id } = req.params;
+    const { password } = req.query; // Get password from query parameters
 
-    // Find the share by ID
-    const share = await Share.findById(id);
+    // Find the share by ID and include password field for verification
+    const share = await Share.findById(id).select('+password');
 
     if (!share) {
       return res.status(404).json({ 
@@ -103,13 +111,33 @@ const getContent = async (req, res) => {
       });
     }
 
+    // Check if password is required
+    if (share.password) {
+      if (!password) {
+        return res.status(401).json({ 
+          error: 'Password required',
+          passwordRequired: true
+        });
+      }
+
+      // Verify password
+      const isPasswordValid = await bcrypt.compare(password, share.password);
+      if (!isPasswordValid) {
+        return res.status(401).json({ 
+          error: 'Invalid password',
+          passwordRequired: true
+        });
+      }
+    }
+
     // Return the content
     const responseData = {
       success: true,
       id: share._id,
       title: share.title,
       createdAt: share.createdAt,
-      expiresAt: expiryTime
+      expiresAt: expiryTime,
+      passwordProtected: !!share.password
     };
 
     if (share.content) {
@@ -217,7 +245,7 @@ const getAllShares = async (req, res) => {
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
-      .select('_id title content fileUrl originalFileName fileSize mimeType createdAt');
+      .select('_id title content fileUrl originalFileName fileSize mimeType createdAt password');
 
     // Filter out expired shares and format response
     const now = new Date();
@@ -226,18 +254,25 @@ const getAllShares = async (req, res) => {
       return now <= expiryTime;
     }).map(share => {
       const expiryTime = new Date(share.createdAt.getTime() + 10800000);
+      const isPasswordProtected = !!share.password;
+      
       return {
         id: share._id,
         title: share.title,
         hasText: !!share.content,
         hasFile: !!share.fileUrl,
-        originalFileName: share.originalFileName,
+        originalFileName: isPasswordProtected && share.originalFileName ? 
+          `protected_file_${Math.random().toString(36).substring(7)}.***` : 
+          share.originalFileName,
         fileSize: share.fileSize,
         mimeType: share.mimeType,
         createdAt: share.createdAt,
         expiresAt: expiryTime,
-        // Add preview of text content (first 100 characters)
-        textPreview: share.content ? share.content.substring(0, 100) + (share.content.length > 100 ? '...' : '') : null
+        passwordProtected: isPasswordProtected,
+        // Mask text content for password-protected items
+        textPreview: isPasswordProtected ? 
+          '••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••' :
+          (share.content ? share.content.substring(0, 100) + (share.content.length > 100 ? '...' : '') : null)
       };
     });
 
