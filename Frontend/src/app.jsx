@@ -5,7 +5,7 @@ import Footer from './components/Footer';
 import NotFound from './components/NotFound';
 import { ErrorBoundary, AsyncErrorBoundary } from './components/ErrorBoundary';
 import { useToast } from './components/Toast';
-import { lazy, preloadComponent } from './utils/lazyLoading';
+import { lazy, preloadComponent } from './utils/lazyLoading.jsx';
 import { scrollToTop } from './utils/helpers';
 import './app.css';
 
