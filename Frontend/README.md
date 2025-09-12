@@ -1,230 +1,231 @@
-# 📦 VanishBin Frontend
+# VanishBin Frontend
 
-A modern, responsive frontend for VanishBin - a secure temporary file and text sharing platform built with Preact, Vite, and TailwindCSS.
+A modern, secure frontend application for temporary file and text sharing built with Preact and Vite.
 
-## 🚀 Features
+![VanishBin Interface](../Assets/allcontent.png)
+*VanishBin's clean and intuitive interface for managing temporary shares*
 
-### 📁 **File & Text Sharing**
-- **Drag & Drop Upload**: Intuitive file upload with drag-and-drop support
-- **Text Sharing**: Share formatted text content with syntax highlighting
-- **Multiple Formats**: Support for images, videos, audio, PDFs, and documents
-- **File Preview**: Real-time preview for images, videos, audio, and PDFs
-- **Download Options**: Multiple download methods with progress indicators
+## Features
 
-### 🔍 **Content Management**
-- **Browse All Content**: View all shared files and text in a grid layout
-- **Advanced Search**: Search by title, filename, or content with real-time highlighting
-- **Infinite Scrolling**: Lazy loading with automatic content fetching
-- **Time-based Sorting**: Latest uploads shown first for better organization
+- **Secure File Sharing**: Upload and share files with auto-expiring links
+- **Text Sharing**: Share text snippets with password protection
+- **Modern UI**: Built with Tailwind CSS for a responsive, clean interface
+- **Performance Optimized**: Lazy loading, code splitting, and optimized bundle size
+- **Error Handling**: Comprehensive error boundaries and user feedback
+- **PWA Ready**: Progressive Web App capabilities for better user experience
+- **Multiple Deployment Options**: Ready for Netlify, Vercel, and other platforms
 
-### ⏰ **Expiration System**
-- **Auto-Expiry**: Content automatically expires after 3 hours
-- **Live Countdown**: Real-time display of remaining time
-- **Visual Indicators**: Color-coded time warnings (green → orange → red)
-- **Expiry Notifications**: Clear messaging when content expires
-
-### 🎨 **User Experience**
-- **Responsive Design**: Works seamlessly on desktop, tablet, and mobile
-- **Modern UI**: Clean interface with smooth animations and transitions
-- **Loading States**: Comprehensive loading indicators and progress feedback
-- **Error Handling**: User-friendly error messages and retry options
-
-## 🛠️ Tech Stack
+## Tech Stack
 
 - **Framework**: [Preact](https://preactjs.com/) - Fast 3kB alternative to React
-- **Build Tool**: [Vite](https://vitejs.dev/) - Next generation frontend tooling
-- **Styling**: [TailwindCSS](https://tailwindcss.com/) - Utility-first CSS framework
+- **Build Tool**: [Vite](https://vitejs.dev/) - Lightning fast build tool
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS framework
 - **Routing**: [Preact Router](https://github.com/preactjs/preact-router) - Client-side routing
+- **Development**: ES6+, Modern JavaScript
 
-## 📋 Prerequisites
+## Application Screenshots
 
-- **Node.js**: Version 16.0 or higher
-- **npm**: Version 7.0 or higher (comes with Node.js)
-- **Backend**: VanishBin Backend server running on port 5000
+### Text Sharing Interface
+![Share Text](../Assets/sharetext.png)
+*Clean interface for sharing text content with optional password protection*
 
-## 🚀 Quick Start
+### File Upload Interface
+![Share Files](../Assets/sharefile.png)
+*Drag-and-drop file upload with progress indicators and security options*
 
-### 1. Clone the Repository
-```bash
-git clone <repository-url>
-cd VanishBin/Frontend
-```
+### Content Management
+![All Content](../Assets/allcontent.png)
+*Browse and manage all shared content with detailed information*
 
-### 2. Install Dependencies
-```bash
-npm install
-```
-
-### 3. Environment Setup
-```bash
-# Copy environment template
-cp .env.example .env
-
-# Edit environment variables
-# VITE_API_URL=http://localhost:5000/api  # Backend API URL
-```
-
-### 4. Start Development Server
-```bash
-npm run dev
-```
-
-The application will be available at `http://localhost:3000`
-
-## 📜 Available Scripts
-
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start development server with hot reload |
-| `npm run build` | Build production-ready bundle |
-| `npm run preview` | Preview production build locally |
-
-## 🏗️ Project Structure
+## Project Structure
 
 ```
 src/
-├── components/              # React components
-│   ├── AllContentPage.jsx   # Browse all shared content
-│   ├── ResultCard.jsx       # Upload success display
-│   ├── UploadForm.jsx       # File/text upload interface
-│   └── ViewPage.jsx         # Individual content viewer
-├── config/
-│   └── api.js              # API endpoints configuration
-├── utils/
-│   └── helpers.js          # Utility functions
-├── assets/                 # Static assets
-├── app.jsx                 # Main application component
-├── main.jsx               # Application entry point
-├── app.css                # Global styles
-└── index.css              # Base CSS imports
+├── components/          # Reusable UI components
+│   ├── AllContentPage.jsx       # Content listing page
+│   ├── ErrorBoundary.jsx        # Error handling components
+│   ├── Footer.jsx               # Application footer
+│   ├── Header.jsx               # Application header
+│   ├── NotFound.jsx            # 404 page component
+│   ├── ResultCard.jsx          # Upload result display
+│   ├── Toast.jsx               # Notification system
+│   ├── UploadForm.jsx          # File/text upload form
+│   └── ViewPage.jsx            # Content viewing page
+├── config/              # Configuration files
+│   └── api.js                  # API endpoints configuration
+├── utils/               # Utility functions
+│   ├── errorHandler.js         # Error handling utilities
+│   ├── helpers.js              # Common helper functions
+│   ├── lazyLoading.jsx         # Lazy loading implementation
+│   └── passwordCache.js        # Password caching utilities
+├── assets/              # Static assets
+├── app.jsx              # Main application component
+├── main.jsx             # Application entry point
+├── app.css              # Global styles
+└── index.css            # Base styles
 ```
 
-## 🔧 Configuration
+## Quick Start
+
+### Prerequisites
+
+- Node.js (v18 or higher)
+- npm or yarn package manager
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   https://github.com/NabarupDev/VanishBin
+   cd Frontend
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Environment Setup**
+   ```bash
+   cp .env.example .env
+   ```
+   
+   Configure your environment variables:
+   ```env
+   VITE_API_URL=http://localhost:5000/api
+   ```
+
+4. **Start development server**
+   ```bash
+   npm run dev
+   ```
+
+The application will be available at `http://localhost:3000`
+
+## Available Scripts
+
+- `npm run dev` - Start development server with hot reload
+- `npm run build` - Build production bundle
+- `npm run preview` - Preview production build locally
+
+## Configuration
 
 ### Environment Variables
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `VITE_API_URL` | Backend API base URL | `/api` |
+| `VITE_API_URL` | Backend API URL | `http://localhost:5000/api` |
 
 ### Vite Configuration
 
-```javascript
-export default defineConfig({
-  plugins: [preact(), tailwindcss()],
-  server: {
-    port: 3000,
-    proxy: {
-      '/api': {
-        target: 'http://localhost:5000',
-        changeOrigin: true
-      }
-    }
-  }
-})
-```
+The project uses Vite for build tooling with the following key configurations:
 
-## 🎯 Features Deep Dive
+- **Development Server**: Runs on port 3000 with API proxy
+- **Build Optimization**: Code splitting and lazy loading
+- **Preact Integration**: Optimized for Preact framework
+- **Tailwind CSS**: Integrated build process
 
-### Upload System
-- **Multi-format Support**: Images, videos, audio, PDFs, documents
-- **Size Limits**: Maximum 10MB per file
-- **Progress Tracking**: Real-time upload progress
-- **Error Handling**: Comprehensive error messages
+## Styling
 
-### Search & Filter
-- **Debounced Search**: 300ms delay for optimal performance
-- **Multi-field Search**: Search across titles, filenames, and content
-- **Highlighting**: Visual highlighting of search terms
-- **Real-time Results**: Instant search results as you type
+The application uses Tailwind CSS for styling with:
 
-### Infinite Scrolling
-- **Lazy Loading**: Load 12 items initially, more on scroll
-- **Auto-fetch**: Automatic loading at 80% scroll position
-- **Manual Control**: "Load More" button as fallback
-- **Performance**: Optimized for large datasets
+- **Utility-first approach**: Rapid UI development
+- **Responsive design**: Mobile-first responsive layouts
+- **Custom configuration**: Tailored color scheme and spacing
+- **Component-based styles**: Reusable style patterns
 
-### Content Display
-- **Grid Layout**: Responsive card-based display
-- **Media Preview**: Inline preview for supported formats
-- **Download Options**: Multiple download methods
-- **Share Links**: Easy copy-to-clipboard functionality
+## Deployment
 
-## 🔗 API Integration
+### Netlify
 
-The frontend communicates with the VanishBin backend through these endpoints:
+The project includes Netlify configuration (`netlify.toml`):
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/upload` | POST | Upload files and text |
-| `/api/:id` | GET | Retrieve shared content |
-| `/api/file/:id` | GET | Download files directly |
-| `/api/all` | GET | List all shared content |
-
-## 📱 Responsive Design
-
-- **Mobile First**: Optimized for mobile devices
-- **Breakpoints**: Tailored for different screen sizes
-- **Touch Friendly**: Large touch targets and gestures
-- **Accessibility**: Proper ARIA labels and keyboard navigation
-
-## 🎨 Styling & Theming
-
-### TailwindCSS Classes
-- **Colors**: Blue primary, gray neutrals, semantic colors
-- **Typography**: System font stack with proper hierarchy
-- **Spacing**: Consistent 4px grid system
-- **Animations**: Smooth transitions and loading states
-
-### Custom Components
-- **Cards**: Elevated surfaces with hover effects
-- **Buttons**: Primary, secondary, and danger variants
-- **Forms**: Styled inputs with validation states
-- **Icons**: SVG icons from Heroicons
-
-## 🔄 State Management
-
-- **Local State**: Preact hooks for component state
-- **Global State**: Props passing for shared data
-- **API State**: Loading, error, and success states
-- **Search State**: Debounced search with filter state
-
-## 🚀 Deployment
-
-### Build for Production
 ```bash
 npm run build
+# Deploy the dist/ folder to Netlify
 ```
 
-### Preview Production Build
+### Vercel
+
+The project includes Vercel configuration (`vercel.json`):
+
 ```bash
-npm run preview
+npm run build
+# Deploy using Vercel CLI or GitHub integration
 ```
 
-### Deploy to Hosting
-1. Build the project: `npm run build`
-2. Upload the `dist/` folder to your hosting provider
-3. Configure your server to serve `index.html` for all routes
-4. Set environment variables for production API URL
+### Manual Deployment
 
-## 🤝 Contributing
+1. Build the project:
+   ```bash
+   npm run build
+   ```
+
+2. Deploy the `dist/` folder to your hosting provider
+
+## Development Guidelines
+
+### Code Structure
+
+- **Components**: Keep components small and focused
+- **Utilities**: Extract reusable logic into utility functions
+- **Lazy Loading**: Use lazy loading for route-based code splitting
+- **Error Handling**: Implement proper error boundaries
+
+### Performance Considerations
+
+- **Lazy Loading**: Components are lazy-loaded for optimal performance
+- **Bundle Splitting**: Automatic code splitting by route
+- **Asset Optimization**: Images and assets are optimized during build
+- **Caching**: Proper cache headers for static assets
+
+## Error Handling
+
+The application includes comprehensive error handling:
+
+- **Error Boundaries**: Catch and handle React errors gracefully
+- **API Error Handling**: Proper error responses from backend
+- **User Feedback**: Toast notifications for user actions
+- **Fallback UI**: Graceful degradation for failed components
+
+## Security Features
+
+- **Content Security Policy**: Implemented for XSS protection
+- **File Validation**: Client-side file type and size validation
+- **Password Protection**: Optional password protection for shares
+- **Secure Headers**: Production security headers configured
+
+## Progressive Web App
+
+The application is configured as a PWA with:
+
+- **Service Worker**: Offline capabilities (when implemented)
+- **Manifest**: App installation support
+- **Responsive Design**: Works on all device sizes
+
+## Contributing
 
 1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Commit changes: `git commit -m 'Add amazing feature'`
-4. Push to branch: `git push origin feature/amazing-feature`
-5. Open a Pull Request
+2. Create a feature branch: `git checkout -b feature-name`
+3. Make your changes and test thoroughly
+4. Commit with descriptive messages: `git commit -m "Add feature"`
+5. Push to your fork: `git push origin feature-name`
+6. Create a Pull Request
 
 ## 📄 License
 
-This project is part of the VanishBin application suite.
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-## 🆘 Support
+## Related
 
-- **Issues**: Create an issue in the repository
-- **Documentation**: Check the project wiki
-- **Backend**: Ensure VanishBin backend is running on port 5000
+- **[Backend Repository](../Backend/)** - The backend API for VanishBin
+- **[API Documentation](../Backend/README.md)** - Backend API endpoints and usage
+- **[Main Project](../README.md)** - Overview and setup instructions
+
+## Support
+
+For support, please open an issue in the GitHub repository or contact the maintainers.
 
 ---
 
-Built with ❤️ using Preact + Vite + TailwindCSS
+**Built with modern web technologies for optimal performance and security**

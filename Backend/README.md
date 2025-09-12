@@ -1,403 +1,341 @@
-# Temporary File/Text Sharing Backend
+# VanishBin Backend API
 
-A Node.js + Express + MongoDB backend for temporary file and text sharing with automatic expiration, now powered by Supabase storage.
+A secure, temporary file and text sharing service backend built with Node.js, Express, MongoDB, and Supabase. VanishBin allows users to share text content and files with automatic expiration and optional password protection.
+
+![VanishBin Interface](../Assets/allcontent.png)
+*VanishBin's clean and intuitive interface for managing temporary shares*
 
 ## Features
 
-- 📝 **Text Sharing**: Share text content with unique links
-- 📁 **File Sharing**: Upload and share files (up to 50MB) via Supabase Storage
-- ⏰ **Auto Expiration**: Content automatically expires after 3 hours
-- 🔗 **Unique Links**: Each share gets a unique ID and shareable link
-- 🗄️ **MongoDB Storage**: Efficient storage with TTL indexes for metadata
-- ☁️ **Supabase Storage**: Reliable cloud storage for files
-- 🧹 **Auto Cleanup**: Automatic file deletion when content expires
-- 🛡️ **Error Handling**: Comprehensive error handling and validation
+- **Secure Sharing**: Password protection with bcrypt encryption
+- **Auto-Expiration**: Content automatically expires after 3 hours
+- **File Upload**: Support for files up to 50MB via Supabase Storage
+- **Text Sharing**: Share formatted text content
+- **Rate Limiting**: Enhanced rate limiting with device fingerprinting
+- **Auto-Cleanup**: Scheduled cleanup of expired content
+- **Cloud Storage**: Files stored securely in Supabase
+- **Health Monitoring**: Built-in health check and statistics endpoints
+- **CORS Ready**: Configured for cross-origin requests
 
-## Prerequisites
+## Architecture
 
-1. **MongoDB**: Running instance (local or cloud)
-2. **Supabase Account**: For file storage
-   - Create a project at [supabase.com](https://supabase.com)
-   - Create a storage bucket named "uploads" (or customize the name)
-   - Make the bucket public for file access
+```
+Backend/
+├── config/           # Database and service configurations
+├── controllers/      # Route handlers and business logic
+├── middleware/       # Rate limiting, file upload, authentication
+├── models/          # MongoDB schemas
+├── routes/          # API route definitions
+├── services/        # Background services (cleanup, change streams)
+├── utils/           # Utility functions (device fingerprinting)
+└── uploads/         # Local file storage (legacy)
+```
 
 ## Quick Start
 
-1. **Install Dependencies**:
+### Prerequisites
+
+- Node.js (v16 or higher)
+- MongoDB database
+- Supabase account and project
+
+### Installation
+
+1. **Clone and navigate to backend directory**
    ```bash
+   cd Backend
    npm install
    ```
 
-2. **Setup Environment**:
+2. **Environment Setup**
    ```bash
    cp .env.example .env
    ```
-   Edit `.env` with your configuration:
-   ```bash
-   # MongoDB
-   MONGODB_URI=mongodb://localhost:27017/tempshare
-   
-   # Supabase Configuration
-   SUPABASE_URL=your_supabase_project_url
-   SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
-   SUPABASE_STORAGE_BUCKET=uploads
-   
-   # Optional
+
+3. **Configure Environment Variables**
+   Edit `.env` with your credentials:
+   ```env
+   # Server Configuration
    PORT=5000
+   NODE_ENV=development
+
+   # MongoDB Configuration
+   MONGODB_URI=your_mongodb_connection_string_here
+
+   # CORS Configuration
    FRONTEND_URL=http://localhost:3000
-   ENABLE_SCHEDULED_CLEANUP=true
+
+   # Supabase Configuration
+   SUPABASE_URL=your_supabase_url_here
+   SUPABASE_ANON_KEY=your_supabase_anon_key_here
+   SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key_here
+   SUPABASE_STORAGE_BUCKET=your_bucket_name_here
    ```
 
-3. **Setup Supabase Storage**:
-   - Go to your Supabase dashboard
-   - Navigate to Storage
-   - Create a new bucket named "uploads"
-   - Make it public (for file downloads)
-   - Go to Settings → API and copy your **service_role** key to `.env`
-   
-   **Important**: Use the `service_role` key, not the `anon` key, to avoid Row Level Security issues.
-
-4. **Start MongoDB**:
-   Make sure MongoDB is running on your system.
-
-5. **Run the Server**:
+4. **Start the Server**
    ```bash
-   # Development mode (with nodemon)
+   # Development mode with auto-reload
    npm run dev
-   
+
    # Production mode
    npm start
    ```
 
-6. **Test the API**:
-   ```bash
-   curl http://localhost:5000/health
-   ```
+5. **Verify Installation**
+   Visit `http://localhost:5000/health` to check server status.
 
-## API Endpoints
+## API Documentation
 
-### 1. Upload Content
+### Upload Content
 **POST** `/api/upload`
 
-Upload either text content or a file (or both). Files are now stored in Supabase.
+Upload text content or files with optional password protection.
 
-**Request Types:**
+![Text Sharing](../Assets/sharetext.png)
+*Share text content with optional password protection*
 
-**A) Text Upload:**
-```bash
-curl -X POST http://localhost:5000/api/upload \
-  -H "Content-Type: application/json" \
-  -d '{"title": "My Text Share", "text": "Hello, this is my shared text!"}'
-```
+![File Sharing](../Assets/sharefile.png)
+*Upload files up to 50MB with automatic expiration*
 
-**B) File Upload:**
-```bash
-curl -X POST http://localhost:5000/api/upload \
-  -F "title=My File Share" \
-  -F "file=@/path/to/your/file.pdf"
-```
-
-**C) Both Text and File:**
-```bash
-curl -X POST http://localhost:5000/api/upload \
-  -F "title=Combined Share" \
-  -F "text=Here is my document description" \
-  -F "file=@/path/to/your/file.pdf"
-```
+**Request:**
+- **Body (multipart/form-data):**
+  - `title` (string, required): Title for the share
+  - `text` (string, optional): Text content to share
+  - `password` (string, optional): Password protection
+  - `file` (file, optional): File to upload (max 50MB)
 
 **Response:**
 ```json
 {
   "success": true,
-  "id": "60f7b3b3b3b3b3b3b3b3b3b3",
-  "shareLink": "/view/60f7b3b3b3b3b3b3b3b3b3b3",
-  "expiresAt": "2024-01-01T15:00:00.000Z",
-  "data": {
-    "title": "My File Share",
-    "hasText": true,
-    "hasFile": true,
-    "originalFileName": "document.pdf",
-    "fileSize": 1048576,
-    "mimeType": "application/pdf"
-  }
+  "id": "unique_share_id",
+  "url": "/api/unique_share_id",
+  "downloadUrl": "/api/file/unique_share_id",
+  "expiresAt": "2024-01-01T12:00:00.000Z"
 }
 ```
 
-### 2. Retrieve Content
+### Get Content
 **GET** `/api/:id`
 
-Get the shared content by ID.
+Retrieve shared content by ID.
 
-```bash
-curl http://localhost:5000/api/60f7b3b3b3b3b3b3b3b3b3b3
-```
+**Query Parameters:**
+- `password` (string, optional): Required if content is password protected
 
 **Response:**
 ```json
 {
   "success": true,
-  "id": "60f7b3b3b3b3b3b3b3b3b3b3",
-  "title": "My File Share",
-  "createdAt": "2024-01-01T12:00:00.000Z",
-  "expiresAt": "2024-01-01T15:00:00.000Z",
-  "text": "Hello, this is my shared text!",
-  "file": {
-    "url": "https://your-project.supabase.co/storage/v1/object/public/uploads/filename.pdf",
-    "originalName": "document.pdf",
-    "size": 1048576,
-    "mimeType": "application/pdf"
+  "data": {
+    "title": "Share Title",
+    "content": "Text content",
+    "hasFile": true,
+    "originalFileName": "document.pdf",
+    "fileSize": 1024000,
+    "mimeType": "application/pdf",
+    "createdAt": "2024-01-01T09:00:00.000Z",
+    "expiresAt": "2024-01-01T12:00:00.000Z"
   }
 }
 ```
 
-### 3. Download File
+### Download File
 **GET** `/api/file/:id`
 
-Download the file directly (redirects to Supabase public URL).
+Download file directly.
 
-```bash
-curl -L http://localhost:5000/api/file/60f7b3b3b3b3b3b3b3b3b3b3
-```
+**Query Parameters:**
+- `password` (string, optional): Required if content is password protected
 
-### 4. Get All Shares
+### Administrative Endpoints
+
+#### Get All Shares
 **GET** `/api/all`
 
-Get a paginated list of all active shares.
+List all shares (useful for debugging).
 
-```bash
-curl "http://localhost:5000/api/all?page=1&limit=20"
-```
+#### Cleanup Statistics
+**GET** `/api/cleanup/stats`
 
-### 5. Cleanup Management
+Get cleanup service statistics.
 
-**GET** `/api/cleanup/stats` - Get cleanup statistics
-```bash
-curl http://localhost:5000/api/cleanup/stats
-```
+#### Manual Cleanup
+**POST** `/api/cleanup`
 
-**POST** `/api/cleanup` - Manually trigger cleanup
-```bash
-curl -X POST http://localhost:5000/api/cleanup
-```
+Manually trigger cleanup of expired content.
 
-### 6. Health Check
+#### Rate Limit Statistics
+**GET** `/api/rate-limit/stats`
+
+View rate limiting violation statistics.
+
+#### Health Check
 **GET** `/health`
 
-Check server status and configuration.
+Server health and status information.
 
-```bash
-curl http://localhost:5000/health
-```
+## Security Features
 
-## File Storage Architecture
+### Rate Limiting
+- **Global**: 1000 requests per 15 minutes per device
+- **Upload**: 10 uploads per 15 minutes per device
+- **Download**: 50 downloads per 15 minutes per device
+- **Admin**: 20 requests per hour per device
 
-### Supabase Integration
-- **Storage**: Files are uploaded to Supabase Storage buckets
-- **Public URLs**: Files are accessible via public Supabase URLs
-- **Automatic Cleanup**: Files are deleted from Supabase when records expire
-- **Reliability**: Cloud-based storage with high availability
+### Device Fingerprinting
+Enhanced rate limiting using combination of:
+- IP address
+- User-Agent
+- Accept-Language
+- Device characteristics
 
-### Cleanup Process
-1. **TTL Expiration**: MongoDB automatically removes expired documents (3 hours)
-2. **Pre-hook Cleanup**: Model hooks automatically delete files from Supabase
-3. **Scheduled Cleanup**: Backup cleanup service runs every hour
-4. **Manual Cleanup**: API endpoint for manual cleanup triggers
+### Password Protection
+- Bcrypt encryption with salt rounds
+- Passwords excluded from API responses
+- Secure password verification
 
-## Error Responses
+### CORS Configuration
+- Configurable allowed origins
+- Credentials support
+- Environment-specific settings
 
-- **400 Bad Request**: Invalid input or file too large
-- **404 Not Found**: Content not found or expired
-- **410 Gone**: Content has expired
-- **500 Internal Server Error**: Server error
+## Background Services
 
-Example error response:
-```json
-{
-  "error": "Content not found or has expired"
-}
-```
+### Auto-Cleanup Service
+- Runs every 60 minutes by default
+- Removes expired shares from database
+- Deletes associated files from Supabase
+- Configurable via `ENABLE_SCHEDULED_CLEANUP` environment variable
 
-## Configuration
+### Change Stream Service
+- MongoDB change streams for real-time monitoring
+- Tracks database modifications
+- Useful for debugging and analytics
+
+## Monitoring
+
+### Health Endpoint
+The `/health` endpoint provides:
+- Server status and uptime
+- Memory usage statistics
+- Storage backend status
+- Service configuration status
+
+### Error Handling
+- Global error handler with detailed logging
+- Multer-specific error handling for file uploads
+- Graceful shutdown on SIGTERM
+- 404 handler with available endpoints
+
+## Configuration Options
 
 ### Environment Variables
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `PORT` | `5000` | Server port |
-| `NODE_ENV` | `development` | Environment mode |
-| `MONGODB_URI` | `mongodb://localhost:27017/tempshare` | MongoDB connection string |
-| `SUPABASE_URL` | - | Supabase project URL (required) |
-| `SUPABASE_SERVICE_ROLE_KEY` | - | Supabase service role key (recommended) |
-| `SUPABASE_ANON_KEY` | - | Supabase anonymous key (fallback) |
-| `SUPABASE_STORAGE_BUCKET` | `uploads` | Supabase storage bucket name |
-| `FRONTEND_URL` | `*` | CORS allowed origin |
-| `ENABLE_SCHEDULED_CLEANUP` | `true` | Enable automatic cleanup scheduling |
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `PORT` | Server port | `5000` |
+| `NODE_ENV` | Environment | `development` |
+| `MONGODB_URI` | MongoDB connection string | Required |
+| `FRONTEND_URL` | Frontend URL for CORS | Optional |
+| `SUPABASE_URL` | Supabase project URL | Required |
+| `SUPABASE_ANON_KEY` | Supabase anonymous key | Required |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key | Required |
+| `SUPABASE_STORAGE_BUCKET` | Supabase storage bucket name | Required |
+| `ENABLE_SCHEDULED_CLEANUP` | Enable auto-cleanup | `true` |
 
 ### File Upload Limits
-
-- **Maximum file size**: 50MB
-- **Supported file types**: All (no restrictions by default)
-- **Storage location**: Supabase Storage (cloud-based)
-
-### Expiration Settings
-
-- **TTL (Time To Live)**: 3 hours (10800 seconds)
-- **Automatic cleanup**: MongoDB TTL + Supabase file deletion
-- **Scheduled cleanup**: Backup cleanup service runs every hour
-- **Grace period**: Additional server-side expiration check
-
-## Project Structure
-
-```
-Backend/
-├── config/
-│   ├── database.js          # MongoDB connection
-│   └── supabase.js          # Supabase client and utilities
-├── controllers/
-│   └── shareController.js   # Business logic
-├── middleware/
-│   ├── upload.js            # Legacy Multer configuration
-│   └── supabaseUpload.js    # Supabase upload middleware
-├── models/
-│   └── Share.js             # MongoDB schema with cleanup hooks
-├── routes/
-│   └── shareRoutes.js       # API routes
-├── services/
-│   └── cleanupService.js    # Automated cleanup service
-├── uploads/                 # Legacy local storage (for migration)
-├── .env                     # Environment variables
-├── .env.example             # Environment template
-├── package.json             # Dependencies
-└── server.js                # Main application file
-```
+- Maximum file size: 50MB
+- Request body limit: 50MB
+- Supported: All file types
+- Storage: Supabase Storage
 
 ## Development
 
-### Running in Development Mode
+### Available Scripts
 ```bash
-npm run dev
+npm start          # Production mode
+npm run dev        # Development with nodemon
+npm run test:supabase  # Test Supabase connection
 ```
 
-This uses `nodemon` for automatic server restarts on file changes.
-
-### Testing with curl
-
-**Upload text:**
+### Testing
 ```bash
-curl -X POST http://localhost:5000/api/upload \
-  -H "Content-Type: application/json" \
-  -d '{"title": "Test Share", "text": "Test message"}'
+# Test Supabase connection
+npm run test:supabase
+
+# Test API endpoints
+node test-api.js
+
+# Test rate limiting
+node test-rate-limiting.js
+
+# Test cleanup service
+node test-cleanup.js
 ```
 
-**Upload file:**
+### Database Migration
 ```bash
-curl -X POST http://localhost:5000/api/upload \
-  -F "title=File Share" \
-  -F "file=@README.md"
+# Migrate shares to include new fields
+node migrate-shares.js
 ```
 
-**Retrieve content:**
-```bash
-curl http://localhost:5000/api/{YOUR_SHARE_ID}
-```
+## Data Models
 
-**Check cleanup stats:**
-```bash
-curl http://localhost:5000/api/cleanup/stats
-```
-
-## MongoDB Schema
-
+### Share Schema
 ```javascript
 {
-  title: String,            // Required title for the share
-  content: String,          // Text content (optional)
-  fileUrl: String,          // Supabase public URL (optional)
-  supabaseFilePath: String, // Internal Supabase file path
-  originalFileName: String, // Original file name
-  fileSize: Number,         // File size in bytes
-  mimeType: String,         // File MIME type
-  createdAt: {              // Creation timestamp
-    type: Date,
-    default: Date.now,
-    expires: 10800          // TTL index - expires after 3 hours
-  }
+  title: String (required, max 100 chars),
+  password: String (optional, encrypted),
+  content: String (optional),
+  fileUrl: String (optional),
+  supabaseFilePath: String (optional),
+  originalFileName: String (optional),
+  fileSize: Number (optional),
+  mimeType: String (optional),
+  createdAt: Date (default: now),
+  expiresAt: Date (default: now + 3 hours)
 }
 ```
 
-## Security Considerations
+## Error Handling
 
-- File uploads are limited to 50MB
-- MongoDB injection protection via Mongoose
-- CORS configuration for frontend integration
-- Supabase provides secure cloud storage
-- No authentication required (temporary sharing service)
-- Automatic file cleanup prevents storage bloat
-- Public bucket access (consider signed URLs for sensitive files)
+### Common Error Responses
+- `400 Bad Request`: Missing required fields, invalid data
+- `401 Unauthorized`: Incorrect password
+- `404 Not Found`: Share not found or expired
+- `429 Too Many Requests`: Rate limit exceeded
+- `500 Internal Server Error`: Server or database errors
 
-## Production Deployment
+### File Upload Errors
+- `LIMIT_FILE_SIZE`: File exceeds 50MB limit
+- `LIMIT_UNEXPECTED_FILE`: Unexpected file field
+- `LIMIT_FIELD_COUNT`: Too many form fields
 
-### Prerequisites
-1. Set up Supabase project with storage bucket
-2. Configure MongoDB (Atlas recommended)
-3. Set all required environment variables
+## Security Best Practices
 
-### Deployment Steps
-1. Set `NODE_ENV=production`
-2. Use production MongoDB URI
-3. Configure Supabase with production settings
-4. Set proper CORS origins
-5. Enable scheduled cleanup
-6. Add rate limiting and additional security measures
-7. Set up logging and monitoring
-8. Configure SSL/TLS
+1. **Environment Variables**: Never commit `.env` files
+2. **Password Hashing**: All passwords are bcrypt encrypted
+3. **Input Validation**: Comprehensive validation on all inputs
+4. **Rate Limiting**: Multi-layered protection against abuse
+5. **File Security**: Files stored in secure cloud storage
+6. **CORS**: Properly configured cross-origin policies
+7. **Error Handling**: No sensitive information in error responses
 
-### Supabase Setup for Production
-1. Create a new project in Supabase
-2. Go to Storage → Create new bucket
-3. Name it "uploads" (or customize)
-4. Make it public for file downloads
-5. Copy project URL and anon key to environment
-6. Set up Row Level Security if needed
+## Contributing
 
-## Troubleshooting
+1. Follow existing code style and conventions
+2. Add appropriate error handling and logging
+3. Update documentation for new features
+4. Test thoroughly before submitting
 
-### Row Level Security (RLS) Error
-If you see: `StorageApiError: new row violates row-level security policy`
+## 📄 License
 
-**Quick Fix**: Use the service role key instead of the anon key:
-1. Go to Supabase Dashboard → Settings → API
-2. Copy the **service_role** key (not the anon key)
-3. Add it to your `.env`: `SUPABASE_SERVICE_ROLE_KEY=your_service_role_key`
-4. Restart your server
+ISC License - see package.json for details.
 
-**Alternative**: Make your storage bucket public in the Supabase dashboard.
+## Support
 
-See `SUPABASE_RLS_FIX.md` for detailed solutions.
-
-### File Upload Issues
-- Ensure your Supabase bucket exists and is named correctly
-- Check that your service role key is valid
-- Verify your bucket has the correct permissions
-
-### MongoDB Connection Issues
-- Ensure MongoDB is running
-- Check your connection string in `.env`
-- Verify network connectivity
-
-## Monitoring and Maintenance
-
-### Cleanup Monitoring
-- Check `/api/cleanup/stats` for storage statistics
-- Monitor Supabase storage usage in dashboard
-- Set up alerts for failed cleanups
-
-### Logs to Monitor
-- File upload failures
-- Cleanup operation results
-- Supabase API errors
-- MongoDB TTL operations
-
-## License
-
-ISC
+For issues and questions:
+1. Check the health endpoint: `/health`
+2. Review server logs for detailed error information
+3. Verify environment configuration
+4. Test individual components with provided test files
